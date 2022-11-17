@@ -168,6 +168,7 @@ class ImageLabelingWorker(
         val imageIdFromSP: String = imagesSharedpreferences.getString(contentId.toString(), "") ?: ""
 
         if(imageIdFromSP == "") {
+            println("new image being processed")
             val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, ContentUris.withAppendedId(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentId))
             val inputImage = InputImage.fromBitmap(bitmap, 0)
@@ -193,7 +194,7 @@ class ImageLabelingWorker(
                 )
                 imageEditor.putString(contentId.toString(), jsonImageDataClass)
                 imageEditor.apply()
-                println("new item in labeledImagesList")
+                println("new image added to shared preference")
             }
         }
     }
