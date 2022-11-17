@@ -1,6 +1,5 @@
 package com.example.grabstufffromdevice
 
-import android.app.Application
 import android.content.ContentUris
 import android.content.Context
 import android.content.SharedPreferences
@@ -8,7 +7,6 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.viewModelScope
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
@@ -33,6 +31,9 @@ class ImageLabelingWorker(
     private val workerParams: WorkerParameters
 ): CoroutineWorker(context, workerParams) {
     val imagesSharedpreferences: SharedPreferences = context.getSharedPreferences("images_preference", Context.MODE_PRIVATE)
+    val imageEditor = imagesSharedpreferences.edit()
+    val gson = Gson()
+
     private lateinit var imageLabeler: ImageLabeler
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -71,8 +72,6 @@ class ImageLabelingWorker(
         labelPhoneAlbumPhotos(context)
     }
 
-    var labeledImagesList: MutableList<ImageDataClass> = mutableListOf()
-
     @RequiresApi(Build.VERSION_CODES.N)
     suspend fun labelPhoneAlbumPhotos(
         context: Context
@@ -98,25 +97,25 @@ class ImageLabelingWorker(
 
         val startingPoint = System.currentTimeMillis()
 
-        val job: Job = GlobalScope.launch(Dispatchers.IO){
-            queryCursor.use { cursor ->
-                if (cursor != null && cursor.count > 0) {
-                    val contentIdColumn = cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID)
-                    val contentDiskPathColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
-                    val contentDateModifiedColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED)
-                    val contentDateAddedColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_ADDED)
-                    val contentDateTakenColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN)
+        queryCursor.use { cursor ->
+            if (cursor != null && cursor.count > 0) {
+                val contentIdColumn = cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID)
+                val contentDiskPathColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+                val contentDateModifiedColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED)
+                val contentDateAddedColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_ADDED)
+                val contentDateTakenColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN)
 
-                    if (cursor.moveToFirst()) {
-                        var contentId: Long
-                        var contentDiskPath: String
-                        var contentDateModified: String
-                        var contentDateAdded: String
-                        var contentDateTaken: String
+                if (cursor.moveToFirst()) {
+                    var contentId: Long
+                    var contentDiskPath: String
+                    var contentDateModified: String
+                    var contentDateAdded: String
+                    var contentDateTaken: String
 
-                        var exception: Exception? = null
-                        var index = 1
+                    var exception: Exception? = null
+                    var index = 1
 
+                    val job: Job = GlobalScope.launch(Dispatchers.IO){
                         try {
                             do {
                                 contentId = cursor.getLong(contentIdColumn)
@@ -134,37 +133,28 @@ class ImageLabelingWorker(
                             exception = e
                             println("WHY DID YOU CRASH!!!???: ${e.message} ")
                         }
-
-                        exception?.let {
-                            val localException = Exception("Crash while getting albums attributes", exception)
-                            println(localException)
-                        }
                     }
+                    job.join()
 
-                    cursor.close()
+                    exception?.let {
+                        val localException = Exception("Crash while getting albums attributes", exception)
+                        println(localException)
+                    }
                 }
-                else {
-                    cursor?.close()
-                }
+
+                cursor.close()
+            }
+            else {
+                cursor?.close()
             }
         }
-        job.join()
+
         val endingPoint = System.currentTimeMillis()
 
-        //region Log and save image data row
-        val imageEditor = imagesSharedpreferences.edit()
         println("Image Disk Path\n----------------------")
         println("startingPoint: $startingPoint")
         println("endingPoint: $endingPoint")
         println("Total Time : " + (endingPoint - startingPoint) + "milliseconds \n")
-
-        val gson = Gson()
-        labeledImagesList.forEach {
-            val jsonImageDataClass = gson.toJson(it)
-            imageEditor.putString(it.imageID, jsonImageDataClass)
-        }
-        imageEditor.apply()
-        //endregion
     }
 
     suspend fun labelImage(
@@ -175,31 +165,36 @@ class ImageLabelingWorker(
         contentDateAdded: String,
         contentDateTaken: String
     ) {
-        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, ContentUris.withAppendedId(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentId))
-        val inputImage = InputImage.fromBitmap(bitmap, 0)
-        var labels: MutableList<String> = arrayListOf()
+        val imageIdFromSP: String = imagesSharedpreferences.getString(contentId.toString(), "") ?: ""
 
-        val data = imageLabeler.process(inputImage).await()
+        if(imageIdFromSP == "") {
+            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, ContentUris.withAppendedId(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentId))
+            val inputImage = InputImage.fromBitmap(bitmap, 0)
+            var labels: MutableList<String> = arrayListOf()
 
-        data.let { imageLabels ->
-            for(imageLabel in imageLabels) {
-                val text = imageLabel.text
-                labels.add(text)
-            }
+            val data = imageLabeler.process(inputImage).await()
 
-            labeledImagesList.add(
-                ImageDataClass(
-                    imageID = contentId.toString(),
-                    filePath = contentDiskPath,
-                    lastEdit = contentDateModified,
-                    contentDateAdded = contentDateAdded,
-                    contentDateTaken = contentDateTaken,
-                    labelList = labels
+            data.let { imageLabels ->
+                for(imageLabel in imageLabels) {
+                    val text = imageLabel.text
+                    labels.add(text)
+                }
+
+                val jsonImageDataClass = gson.toJson(
+                    ImageDataClass(
+                        imageID = contentId.toString(),
+                        filePath = contentDiskPath,
+                        lastEdit = contentDateModified,
+                        contentDateAdded = contentDateAdded,
+                        contentDateTaken = contentDateTaken,
+                        labelList = labels
+                    )
                 )
-            )
-
-            println("new item in labeledImagesList")
+                imageEditor.putString(contentId.toString(), jsonImageDataClass)
+                imageEditor.apply()
+                println("new item in labeledImagesList")
+            }
         }
     }
 }

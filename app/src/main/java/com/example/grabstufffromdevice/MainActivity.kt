@@ -92,14 +92,12 @@ class MainActivity : ComponentActivity() {
 fun ListOfStuff(imageList: List<ImageDataClass>) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(imageList) { stuff ->
-//            if(stuff.imageID == "6907") {
-                Text(text = stuff.imageID.toString())
-                Text(text = stuff.filePath.toString())
-                Text(text = stuff.lastEdit.toString())
-                Text(text = stuff.contentDateAdded)
-                Text(text = stuff.contentDateTaken)
-                Spacer(modifier = Modifier.padding(20.dp))
-//            }
+            Text(text = stuff.imageID.toString())
+            Text(text = stuff.filePath.toString())
+            Text(text = stuff.lastEdit.toString())
+            Text(text = stuff.contentDateAdded)
+            Text(text = stuff.contentDateTaken)
+            Spacer(modifier = Modifier.padding(20.dp))
         }
     }
 }
