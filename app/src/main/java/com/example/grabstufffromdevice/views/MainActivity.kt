@@ -1,4 +1,4 @@
-package com.example.grabstufffromdevice
+package com.example.grabstufffromdevice.views
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -24,7 +24,10 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.work.*
 import com.example.grabstufffromdevice.ImageLabelingWorker
+import com.example.grabstufffromdevice.db.ImageEntity
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +52,7 @@ class MainActivity : ComponentActivity() {
             val imageLabelingInfo = remember(key1 = workInfos) { workInfos?.find { it.id == labelingRequest.id } }
 
             Column(Modifier.fillMaxSize()) {
-                val labeledImages by vm.labeledImageRows.observeAsState()
+//                val labeledImages by vm.labeledImageRows.observeAsState()
 
                 Column(Modifier.fillMaxSize()) {
                     Button(
@@ -81,7 +84,7 @@ class MainActivity : ComponentActivity() {
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
-                    ListOfStuff(labeledImages ?: arrayListOf())
+//                    ListOfStuff(labeledImages ?: arrayListOf())
                 }
             }
         }
@@ -89,14 +92,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ListOfStuff(imageList: List<ImageDataClass>) {
+fun ListOfStuff(imageList: List<ImageEntity>) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(imageList) { stuff ->
-            Text(text = stuff.imageID.toString())
-            Text(text = stuff.filePath.toString())
-            Text(text = stuff.lastEdit.toString())
-            Text(text = stuff.contentDateAdded)
-            Text(text = stuff.contentDateTaken)
+            Text(text = stuff.imageId.toString())
+            Text(text = stuff.imagePath)
             Spacer(modifier = Modifier.padding(20.dp))
         }
     }
