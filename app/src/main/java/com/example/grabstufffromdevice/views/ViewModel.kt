@@ -3,22 +3,43 @@ package com.example.grabstufffromdevice.views
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import com.example.grabstufffromdevice.db.ImageEntity
+import com.example.grabstufffromdevice.db.ImageDao
 import com.example.grabstufffromdevice.db.ImageLabelEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class ViewModel(application: Application): AndroidViewModel(application) {
+@HiltViewModel
+class ViewModel @Inject constructor(
+    application: Application,
+    private val imageDao: ImageDao
+): AndroidViewModel(application) {
 
-    private val _labeledImages = MutableLiveData<List<ImageEntity>>()
-    val labeledImages: MutableLiveData<List<ImageEntity>> = _labeledImages
-
-    private val _imageLabels = MutableLiveData<List<List<ImageLabelEntity>>>()
-    val imageLabels: MutableLiveData<List<List<ImageLabelEntity>>> = _imageLabels
+    private val _labeledImages = MutableLiveData<List<ImageAndLabels>>()
+    val labeledImages: MutableLiveData<List<ImageAndLabels>> = _labeledImages
 
     fun getDataOfImagesAndLabels() {
-        var imagesList: MutableList<ImageEntity> = arrayListOf()
+        var imageAndLabelsList: MutableList<ImageAndLabels> = arrayListOf()
 
+        val imagesFromDb = imageDao.getAllImages()
 
+        imagesFromDb.forEach {
+            var imageLabelArray = imageDao.getImageSpecificLabels(it.imageId)
 
-//        _labeledImageRows.value = imagesList
+            imageAndLabelsList.add(
+                ImageAndLabels(
+                    imageId = it.imageId,
+                    imagePath = it.imagePath,
+                    labelList = imageLabelArray
+                )
+            )
+        }
+
+        _labeledImages.value = imageAndLabelsList
     }
 }
+
+data class ImageAndLabels(
+    val imageId:String = "",
+    val imagePath:String="",
+    val labelList: MutableList<ImageLabelEntity>
+)

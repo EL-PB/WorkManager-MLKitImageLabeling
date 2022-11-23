@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
             val imageLabelingInfo = remember(key1 = workInfos) { workInfos?.find { it.id == labelingRequest.id } }
 
             Column(Modifier.fillMaxSize()) {
-//                val labeledImages by vm.labeledImageRows.observeAsState()
+                val labeledImages by vm.labeledImages.observeAsState()
 
                 Column(Modifier.fillMaxSize()) {
                     Button(
@@ -84,7 +84,7 @@ class MainActivity : ComponentActivity() {
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
-//                    ListOfStuff(labeledImages ?: arrayListOf())
+                    ListOfStuff(labeledImages ?: arrayListOf())
                 }
             }
         }
@@ -92,11 +92,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ListOfStuff(imageList: List<ImageEntity>) {
+fun ListOfStuff(imageList: List<ImageAndLabels>) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(imageList) { stuff ->
-            Text(text = stuff.imageId.toString())
+            Text(text = stuff.imageId)
             Text(text = stuff.imagePath)
+            stuff.labelList.forEach {
+                Text(text = it.label)
+            }
             Spacer(modifier = Modifier.padding(20.dp))
         }
     }
