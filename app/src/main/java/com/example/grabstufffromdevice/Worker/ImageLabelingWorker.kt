@@ -6,6 +6,7 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -35,7 +36,10 @@ object WorkerKeys {
 class ImageLabelingWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted private val workerParams: WorkerParameters,
+
     private val imageDao:ImageDao,
+    private val notificationBuilder: NotificationCompat.Builder,
+    private val notificationManager: NotificationManagerCompat
 ): CoroutineWorker(context, workerParams) {
     private lateinit var imageLabeler: ImageLabeler
 
@@ -76,6 +80,11 @@ class ImageLabelingWorker @AssistedInject constructor(
     @OptIn(DelicateCoroutinesApi::class)
     @RequiresApi(Build.VERSION_CODES.N)
     suspend fun labelPhoneAlbumPhotos(context: Context){
+        val startTime = System.currentTimeMillis()
+        notificationManager.notify(1, notificationBuilder
+            .setContentTitle("Process initiated")
+            .build()
+        )
         val projection = arrayOf(
             MediaStore.Images.Media._ID,
             MediaStore.Images.Media.DATA
@@ -93,6 +102,7 @@ class ImageLabelingWorker @AssistedInject constructor(
         )
 
         GlobalScope.launch(Dispatchers.IO){
+            var index = 1
             queryCursor.use { cursor ->
                 if (cursor != null && cursor.count > 0) {
                     val contentIdColumn = cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID)
@@ -103,7 +113,6 @@ class ImageLabelingWorker @AssistedInject constructor(
                         var contentDiskPath: String
 
                         var exception: Exception? = null
-                        var index = 1
 
                         try {
                             do {
@@ -139,6 +148,11 @@ class ImageLabelingWorker @AssistedInject constructor(
                     cursor?.close()
                 }
             }
+            val endTime = System.currentTimeMillis()
+            notificationManager.notify(1, notificationBuilder
+                .setContentTitle("Total images: $index; total time: ${endTime - startTime}")
+                .build()
+            )
         }
     }
 
@@ -174,6 +188,7 @@ class ImageLabelingWorker @AssistedInject constructor(
                     )
                     println("Text: $text\tConfidence: $confidence\tIndex: $index")
                 }
+
             }
     }
 }
