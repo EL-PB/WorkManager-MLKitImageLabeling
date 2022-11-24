@@ -111,7 +111,15 @@ class ImageLabelingWorker @AssistedInject constructor(
                                 contentDiskPath = cursor.getString(contentDiskPathColumn)
 
                                 println("$index) $contentDiskPath")
-                                labelImage(context, contentId.toString(), contentDiskPath)
+                                val imageIdString = contentId.toString()
+
+                                if(imageDao.doesImageExist(imageIdString)) {
+                                    println("Skipping")
+                                }
+                                else {
+                                    labelImage(context, imageIdString, contentDiskPath)
+                                }
+
                                 index++
                             } while (cursor.moveToNext())
                         }
@@ -134,7 +142,7 @@ class ImageLabelingWorker @AssistedInject constructor(
         }
     }
 
-    suspend fun labelImage(
+    fun labelImage(
         context: Context,
         contentId: String,
         contentDiskPath: String

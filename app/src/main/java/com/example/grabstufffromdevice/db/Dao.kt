@@ -16,6 +16,9 @@ interface ImageDao {
     @Query("SELECT * FROM imagetable ORDER BY imageIdParent ASC")
     fun getAllImages() : MutableList<ImageEntity>
 
+    @Query("SELECT EXISTS(SELECT * FROM imagetable WHERE imageIdParent = :imageId)")
+    fun doesImageExist(imageId : String) : Boolean
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertLabel(imageLabel: ImageLabelEntity)
 
