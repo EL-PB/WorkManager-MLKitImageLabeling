@@ -22,10 +22,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.room.Room
 import androidx.work.*
 import com.example.grabstufffromdevice.ImageLabelingWorker
+import com.example.grabstufffromdevice.db.ImageDatabase
 
 class MainActivity : ComponentActivity() {
+    private val imageDB : ImageDatabase by lazy {
+        Room.databaseBuilder(applicationContext, ImageDatabase::class.java,"ImageDatabase")
+            .allowMainThreadQueries()
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,15 +74,9 @@ class MainActivity : ComponentActivity() {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    when(imageLabelingInfo?.state) {
-                        WorkInfo.State.RUNNING -> Text("Labeling...")
-                        WorkInfo.State.SUCCEEDED -> DisplayLabelsButton(vm)//Text("Labeling succeeded")
-                        WorkInfo.State.FAILED -> Text("Labeling failed")
-                        WorkInfo.State.CANCELLED -> Text("Labeling cancelled")
-                        WorkInfo.State.ENQUEUED -> Text("Labeling enqueued")
-                        WorkInfo.State.BLOCKED -> Text("Labeling blocked")
+                    Button(onClick = { vm.getDataOfImagesAndLabels() }) {
+                        Text(text = "Display Labels")
                     }
-                    DisplayLabelsButton(vm)
 
                     Text(
                         text = "Labels List",
@@ -99,12 +102,5 @@ fun ListOfStuff(imageList: List<ImageDataClass>) {
             Text(text = stuff.contentDateTaken)
             Spacer(modifier = Modifier.padding(20.dp))
         }
-    }
-}
-
-@Composable
-fun DisplayLabelsButton(vm: ViewModel){
-    Button(onClick = { vm.getDataOfImagesAndLabels() }) {
-        Text(text = "Display Labels")
     }
 }

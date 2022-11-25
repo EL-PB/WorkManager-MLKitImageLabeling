@@ -7,10 +7,14 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.example.grabstufffromdevice.db.ImageDatabase
+import com.example.grabstufffromdevice.db.ImageEntity
+import com.example.grabstufffromdevice.db.ImageLabelEntity
 import com.google.gson.Gson
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.label.ImageLabeler
@@ -25,16 +29,19 @@ object WorkerKeys {
     const val LABELING_URI = "labelingUri"
 }
 
-@Suppress("BlockingMethodInNonBlockingContext")
 class ImageLabelingWorker(
     private val context: Context,
     private val workerParams: WorkerParameters
 ): CoroutineWorker(context, workerParams) {
-    val imagesSharedpreferences: SharedPreferences = context.getSharedPreferences("images_preference", Context.MODE_PRIVATE)
-    val imageEditor = imagesSharedpreferences.edit()
-    val gson = Gson()
 
     private lateinit var imageLabeler: ImageLabeler
+
+    private val imageDB : ImageDatabase by lazy {
+        Room.databaseBuilder(context,ImageDatabase::class.java,"ImageDatabase")
+            .allowMainThreadQueries()
+            .fallbackToDestructiveMigration()
+            .build()
+    }
 
     @RequiresApi(Build.VERSION_CODES.N)
     override suspend fun doWork(): Result {
@@ -101,16 +108,10 @@ class ImageLabelingWorker(
             if (cursor != null && cursor.count > 0) {
                 val contentIdColumn = cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID)
                 val contentDiskPathColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
-                val contentDateModifiedColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED)
-                val contentDateAddedColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_ADDED)
-                val contentDateTakenColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN)
 
                 if (cursor.moveToFirst()) {
                     var contentId: Long
                     var contentDiskPath: String
-                    var contentDateModified: String
-                    var contentDateAdded: String
-                    var contentDateTaken: String
 
                     var exception: Exception? = null
                     var index = 1
@@ -120,12 +121,9 @@ class ImageLabelingWorker(
                             do {
                                 contentId = cursor.getLong(contentIdColumn)
                                 contentDiskPath = cursor.getString(contentDiskPathColumn)
-                                contentDateModified = cursor.getString(contentDateModifiedColumn)
-                                contentDateAdded = cursor.getString(contentDateAddedColumn)
-                                contentDateTaken = cursor.getString(contentDateTakenColumn)
 
                                 println("$index) $contentDiskPath")
-                                labelImage(context, contentId, contentDiskPath, contentDateModified, contentDateAdded, contentDateTaken)
+                                labelImage(context, contentId, contentDiskPath)
                                 index++
                             } while (cursor.moveToNext())
                         }
@@ -160,42 +158,36 @@ class ImageLabelingWorker(
     suspend fun labelImage(
         context: Context,
         contentId: Long,
-        contentDiskPath: String,
-        contentDateModified: String,
-        contentDateAdded: String,
-        contentDateTaken: String
+        contentDiskPath: String
     ) {
-        val imageIdFromSP: String = imagesSharedpreferences.getString(contentId.toString(), "") ?: ""
+        println("new image being processed")
+        imageDB.imageDao().insertImage(
+            ImageEntity(
+                contentId.toString(),
+                contentDiskPath
+            )
+        )
+        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, ContentUris.withAppendedId(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentId))
+        val inputImage = InputImage.fromBitmap(bitmap, 0)
 
-        if(imageIdFromSP == "") {
-            println("new image being processed")
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, ContentUris.withAppendedId(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentId))
-            val inputImage = InputImage.fromBitmap(bitmap, 0)
-            var labels: MutableList<String> = arrayListOf()
-
-            val data = imageLabeler.process(inputImage).await()
-
-            data.let { imageLabels ->
+        imageLabeler
+            .process(inputImage)
+            .addOnSuccessListener { imageLabels ->
                 for(imageLabel in imageLabels) {
                     val text = imageLabel.text
-                    labels.add(text)
-                }
+                    val confidence = imageLabel.confidence
+                    val index = imageLabel.index
 
-                val jsonImageDataClass = gson.toJson(
-                    ImageDataClass(
-                        imageID = contentId.toString(),
-                        filePath = contentDiskPath,
-                        lastEdit = contentDateModified,
-                        contentDateAdded = contentDateAdded,
-                        contentDateTaken = contentDateTaken,
-                        labelList = labels
+                    imageDB.imageDao().insertLabel(
+                        ImageLabelEntity(
+                            contentId.toString(),
+                            "Text: $text\tConfidence: $confidence\tIndex: $index\n"
+                        )
                     )
-                )
-                imageEditor.putString(contentId.toString(), jsonImageDataClass)
-                imageEditor.apply()
-                println("new image added to shared preference")
+                    println("Text: $text\tConfidence: $confidence\tIndex: $index\n")
+                }
             }
-        }
     }
+
 }

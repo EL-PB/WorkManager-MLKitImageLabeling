@@ -21,7 +21,6 @@ import kotlinx.coroutines.tasks.await
 
 class ViewModel(application: Application): AndroidViewModel(application) {
     private var imageLabeler: ImageLabeler
-    val imagesSharedpreferences: SharedPreferences = getApplication<Application>().getSharedPreferences("images_preference", Context.MODE_PRIVATE)
 
     private val _labeledImageRows = MutableLiveData<List<ImageDataClass>>()
     val labeledImageRows: MutableLiveData<List<ImageDataClass>> = _labeledImageRows
@@ -31,17 +30,6 @@ class ViewModel(application: Application): AndroidViewModel(application) {
     }
 
     fun getDataOfImagesAndLabels() {
-        val imagesMap: Map<String, String> = imagesSharedpreferences.getAll() as Map<String, String>
-
-        var imagesList: MutableList<ImageDataClass> = arrayListOf()
-        println("HWG\n-----------------------------")
-        val gson = Gson()
-        imagesMap.forEach {
-            val json: String = it.value
-            val imageDataClassObj: ImageDataClass = gson.fromJson(json, ImageDataClass::class.java)
-            println(it.key)
-            imagesList.add(imageDataClassObj)
-        }
-        _labeledImageRows.value = imagesList
+        
     }
 }
