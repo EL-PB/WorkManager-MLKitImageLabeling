@@ -10,8 +10,11 @@ interface ImageDao {
     @Update
     fun updateImage(imageEntity: ImageEntity)
 
-    @Delete
-    fun deleteImage(imageEntity: ImageEntity)
+    @Query("DELETE FROM imagetable")
+    fun nukeImageTable()
+
+    @Query("DELETE FROM imagelabeltable")
+    fun nukeImageLabelTable()
 
     @Query("SELECT * FROM imagetable ORDER BY imageIdParent ASC")
     fun getAllImages() : MutableList<ImageEntity>
@@ -24,4 +27,10 @@ interface ImageDao {
 
     @Query("SELECT * FROM ImageLabelTable WHERE imageIdChild = :imageId ORDER BY label ASC")
     fun getImageSpecificLabels(imageId: String) : MutableList<ImageLabelEntity>
+
+    @Query("UPDATE CountCompleted SET completed = completed + 1")
+    fun updateCompleted()
+
+    @Query("SELECT completed FROM CountCompleted")
+    fun countCompleted(): Int
 }

@@ -31,3 +31,9 @@ data class ImageLabelEntity(
     @ColumnInfo(name = "label")
     val label:String=""
 )
+
+@Entity(tableName = "CountCompleted")
+data class CountCompleted(
+    @PrimaryKey
+    val completed: Int = 0
+)
