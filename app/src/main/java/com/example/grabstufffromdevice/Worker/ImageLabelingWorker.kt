@@ -35,8 +35,9 @@ class ImageLabelingWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted private val workerParams: WorkerParameters,
 
-    private val imageDao:ImageDao,
+    private val imageDao:ImageDao
 ): CoroutineWorker(context, workerParams) {
+
     private lateinit var imageLabeler: ImageLabeler
 
     @RequiresApi(Build.VERSION_CODES.N)
