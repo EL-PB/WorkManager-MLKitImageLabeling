@@ -68,15 +68,13 @@ class MainActivity : ComponentActivity() {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    when(imageLabelingInfo?.state) {
-                        WorkInfo.State.RUNNING -> Text("Labeling...")
-                        WorkInfo.State.SUCCEEDED -> DisplayLabelsButton(vm)//Text("Labeling succeeded")
-                        WorkInfo.State.FAILED -> Text("Labeling failed")
-                        WorkInfo.State.CANCELLED -> Text("Labeling cancelled")
-                        WorkInfo.State.ENQUEUED -> Text("Labeling enqueued")
-                        WorkInfo.State.BLOCKED -> Text("Labeling blocked")
+                    Button(onClick = { vm.getDataOfImagesAndLabels() }) {
+                        Text(text = "Display Labels")
                     }
-                    DisplayLabelsButton(vm)
+
+                    Button(onClick = { vm.clearDatabase() }) {
+                        Text(text = "Clear database")
+                    }
 
                     Text(
                         text = "Labels List",
@@ -102,12 +100,5 @@ fun ListOfStuff(imageList: List<ImageAndLabels>) {
             }
             Spacer(modifier = Modifier.padding(20.dp))
         }
-    }
-}
-
-@Composable
-fun DisplayLabelsButton(vm: ViewModel){
-    Button(onClick = { vm.getDataOfImagesAndLabels() }) {
-        Text(text = "Display Labels")
     }
 }
