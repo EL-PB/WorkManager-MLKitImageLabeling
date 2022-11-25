@@ -89,14 +89,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ListOfStuff(imageList: List<ImageDataClass>) {
+fun ListOfStuff(imageList: List<ImageAndLabels>) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(imageList) { stuff ->
-            Text(text = stuff.imageID.toString())
-            Text(text = stuff.filePath.toString())
-            Text(text = stuff.lastEdit.toString())
-            Text(text = stuff.contentDateAdded)
-            Text(text = stuff.contentDateTaken)
+            Text(text = stuff.imageId)
+            Text(text = stuff.imagePath)
+            stuff.labelList.forEach {
+                Text(text = it.label)
+            }
             Spacer(modifier = Modifier.padding(20.dp))
         }
     }
