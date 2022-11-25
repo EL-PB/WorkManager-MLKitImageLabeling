@@ -28,13 +28,6 @@ import com.example.grabstufffromdevice.ImageLabelingWorker
 import com.example.grabstufffromdevice.db.ImageDatabase
 
 class MainActivity : ComponentActivity() {
-    private val imageDB : ImageDatabase by lazy {
-        Room.databaseBuilder(applicationContext, ImageDatabase::class.java,"ImageDatabase")
-            .allowMainThreadQueries()
-            .fallbackToDestructiveMigration()
-            .build()
-    }
-
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +51,7 @@ class MainActivity : ComponentActivity() {
             val imageLabelingInfo = remember(key1 = workInfos) { workInfos?.find { it.id == labelingRequest.id } }
 
             Column(Modifier.fillMaxSize()) {
-                val labeledImages by vm.labeledImageRows.observeAsState()
+                val labeledImages by vm.labeledImages.observeAsState()
 
                 Column(Modifier.fillMaxSize()) {
                     Button(
@@ -76,6 +69,10 @@ class MainActivity : ComponentActivity() {
 
                     Button(onClick = { vm.getDataOfImagesAndLabels() }) {
                         Text(text = "Display Labels")
+                    }
+
+                    Button(onClick = { vm.clearDatabase() }) {
+                        Text(text = "Clear database")
                     }
 
                     Text(
