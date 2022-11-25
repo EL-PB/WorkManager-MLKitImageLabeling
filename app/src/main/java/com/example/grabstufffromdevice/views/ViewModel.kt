@@ -36,6 +36,11 @@ class ViewModel @Inject constructor(
 
         _labeledImages.value = imageAndLabelsList
     }
+
+    fun clearDatabase() {
+        imageDao.nukeImageTable()
+        imageDao.nukeImageLabelTable()
+    }
 }
 
 data class ImageAndLabels(
