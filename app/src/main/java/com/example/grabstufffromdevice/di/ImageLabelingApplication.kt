@@ -4,6 +4,8 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
@@ -15,6 +17,11 @@ class ImageLabelingApplication: Application(), Configuration.Provider{
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
+    @Inject
+    lateinit var notificationBuilder: NotificationCompat.Builder
+    @Inject
+    lateinit var notificationManager: NotificationManagerCompat
+
     override fun getWorkManagerConfiguration(): Configuration {
       return Configuration.Builder()
               .setWorkerFactory(workerFactory)
@@ -23,15 +30,6 @@ class ImageLabelingApplication: Application(), Configuration.Provider{
 
     override fun onCreate() {
         super.onCreate()
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "image_labelling_channel",
-                "Label Images",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
-        }
+        notificationManager.notify(1, notificationBuilder.build())
     }
 }

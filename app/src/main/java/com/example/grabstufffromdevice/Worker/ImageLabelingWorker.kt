@@ -6,6 +6,7 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -30,20 +31,19 @@ object WorkerKeys {
 }
 
 @HiltWorker
-@Suppress("BlockingMethodInNonBlockingContext")
 class ImageLabelingWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted private val workerParams: WorkerParameters,
 
-    private val imageDao:ImageDao
+    private val imageDao:ImageDao,
+    private val notificationBuilder: NotificationCompat.Builder,
+    private val notificationManager: NotificationManagerCompat
 ): CoroutineWorker(context, workerParams) {
 
     private lateinit var imageLabeler: ImageLabeler
 
     @RequiresApi(Build.VERSION_CODES.N)
     override suspend fun doWork(): Result {
-        startForegroundService()
-
         imageLabeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
 
         return withContext(Dispatchers.IO) {
@@ -77,6 +77,15 @@ class ImageLabelingWorker @AssistedInject constructor(
     @OptIn(DelicateCoroutinesApi::class)
     @RequiresApi(Build.VERSION_CODES.N)
     suspend fun labelPhoneAlbumPhotos(context: Context){
+        startForegroundService()
+        notificationManager.notify(
+            1,
+            notificationBuilder
+                .setContentTitle("Image processing")
+                .setContentText("Initiated")
+                .build()
+        )
+
         val projection = arrayOf(
             MediaStore.Images.Media._ID,
             MediaStore.Images.Media.DATA
