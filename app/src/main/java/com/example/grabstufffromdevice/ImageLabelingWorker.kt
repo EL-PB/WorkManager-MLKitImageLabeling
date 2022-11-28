@@ -181,8 +181,10 @@ class ImageLabelingWorker(
 
                     imageDB.imageDao().insertLabel(
                         ImageLabelEntity(
-                            contentId.toString(),
-                            "Text: $text\tConfidence: $confidence\tIndex: $index\n"
+                            imageId = contentId.toString(),
+                            label =text,
+                            confidence = confidence.toString(),
+                            index = index.toString()
                         )
                     )
                     println("Text: $text\tConfidence: $confidence\tIndex: $index\n")

@@ -8,11 +8,13 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.example.grabstufffromdevice.db.ImageDatabase
 import com.example.grabstufffromdevice.db.ImageLabelEntity
+import com.example.grabstufffromdevice.db.LabelFrequencyPair
 import com.google.gson.Gson
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.label.ImageLabeler
@@ -32,7 +34,10 @@ class ViewModel constructor(application: Application): AndroidViewModel(applicat
     }
 
     private val _labeledImages = MutableLiveData<List<ImageAndLabels>>()
-    val labeledImages: MutableLiveData<List<ImageAndLabels>> = _labeledImages
+    val labeledImages: LiveData<List<ImageAndLabels>> = _labeledImages
+
+    private val _labelFrequencyList = MutableLiveData<List<LabelFrequencyPair>>(arrayListOf())
+    val labelFrequencyList: LiveData<List<LabelFrequencyPair>> = _labelFrequencyList
 
     fun getDataOfImagesAndLabels() {
         var imageAndLabelsList: MutableList<ImageAndLabels> = arrayListOf()
@@ -52,6 +57,29 @@ class ViewModel constructor(application: Application): AndroidViewModel(applicat
         }
 
         _labeledImages.value = imageAndLabelsList
+        _labelFrequencyList.value = imageDB.imageDao().getTopLabels()
+    }
+
+    private val _specificLabeledImages = MutableLiveData<MutableList<ImageAndLabels>>(arrayListOf())
+    val specificLabeledImages: LiveData<MutableList<ImageAndLabels>> = _specificLabeledImages
+
+    fun getSpecificImageLists(label: String) {
+        var specificImageAndLabelsList: MutableList<ImageAndLabels> = arrayListOf()
+        val specificImagesFromDb = imageDB.imageDao().getImagesFilteredByLabels(label)
+
+        specificImagesFromDb.forEach {
+            var imageLabelArray = imageDB.imageDao().getImageSpecificLabels(it.imageId)
+
+            specificImageAndLabelsList.add(
+                ImageAndLabels(
+                    imageId = it.imageId,
+                    imagePath = it.imagePath,
+                    labelList = imageLabelArray
+                )
+            )
+        }
+
+        _specificLabeledImages.value = specificImageAndLabelsList
     }
 
     fun clearDatabase() {

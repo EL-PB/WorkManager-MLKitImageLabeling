@@ -28,9 +28,19 @@ interface ImageDao {
     @Query("SELECT * FROM ImageLabelTable WHERE imageIdChild = :imageId ORDER BY label ASC")
     fun getImageSpecificLabels(imageId: String) : MutableList<ImageLabelEntity>
 
-    @Query("UPDATE CountCompleted SET completed = completed + 1")
-    fun updateCompleted()
+    @Query("SELECT label, COUNT(label) as frequency FROM ImageLabelTable GROUP BY label ORDER BY frequency DESC LIMIT 3")
+    fun getTopLabels(): MutableList<LabelFrequencyPair>
 
-    @Query("SELECT completed FROM CountCompleted")
-    fun countCompleted(): Int
+    @Query(
+        "SELECT * FROM imagetable " +
+        "WHERE imageIdParent IN " +
+        "(SELECT imageIdChild FROM imagelabeltable WHERE label = :label) " +
+        "ORDER BY imageIdParent ASC"
+    )
+    fun getImagesFilteredByLabels(label: String): MutableList<ImageEntity>
 }
+
+data class LabelFrequencyPair(
+    val label:String = "",
+    val frequency: Int = 0
+)

@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -26,6 +27,7 @@ import androidx.room.Room
 import androidx.work.*
 import com.example.grabstufffromdevice.ImageLabelingWorker
 import com.example.grabstufffromdevice.db.ImageDatabase
+import com.example.grabstufffromdevice.db.LabelFrequencyPair
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
@@ -52,6 +54,8 @@ class MainActivity : ComponentActivity() {
 
             Column(Modifier.fillMaxSize()) {
                 val labeledImages by vm.labeledImages.observeAsState()
+                val labelFrequencyPairs by vm.labelFrequencyList.observeAsState()
+                val specificLabeledImages by vm.specificLabeledImages.observeAsState()
 
                 Column(Modifier.fillMaxSize()) {
                     Button(
@@ -64,24 +68,30 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Text(text = "Begin operations")
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
-                    Button(onClick = { vm.getDataOfImagesAndLabels() }) {
-                        Text(text = "Display Labels")
-                    }
 
                     Button(onClick = { vm.clearDatabase() }) {
                         Text(text = "Clear database")
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
 
+                    Button(onClick = { vm.getDataOfImagesAndLabels() }) {
+                        Text(text = "Display Complete Data of Images")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    labelFrequencyPairs?.let {
+                        ListTopLabels(labelFrequencyPairs ?: arrayListOf(), vm)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Labels List",
                         modifier = Modifier.fillMaxWidth(),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
-                    ListOfStuff(labeledImages ?: arrayListOf())
+
+                    ListOfImageAndLabels(specificLabeledImages ?: arrayListOf())
                 }
             }
         }
@@ -89,15 +99,26 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ListOfStuff(imageList: List<ImageAndLabels>) {
+fun ListOfImageAndLabels(imageList: List<ImageAndLabels>) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(imageList) { stuff ->
             Text(text = stuff.imageId)
             Text(text = stuff.imagePath)
             stuff.labelList.forEach {
-                Text(text = it.label)
+                Text(text = "Index: ${it.index}, Label: ${ it.label }, Confidence: ${it.confidence}")
             }
             Spacer(modifier = Modifier.padding(20.dp))
+        }
+    }
+}
+
+@Composable
+fun ListTopLabels(labelFrequencyPairList: List<LabelFrequencyPair>, vm: ViewModel) {
+    LazyRow(Modifier.fillMaxWidth()) {
+        items(labelFrequencyPairList) { pair ->
+            Button(onClick = { vm.getSpecificImageLists(pair.label) }) {
+                Text(text = "${ pair.label }: ${pair.frequency}")
+            }
         }
     }
 }

@@ -29,11 +29,9 @@ data class ImageLabelEntity(
     @ColumnInfo(name = "imageIdChild")
     val imageId :String = "",
     @ColumnInfo(name = "label")
-    val label:String=""
-)
-
-@Entity(tableName = "CountCompleted")
-data class CountCompleted(
-    @PrimaryKey
-    val completed: Int = 0
+    val label:String="",
+    @ColumnInfo(name = "confidence")
+    val confidence:String="",
+    @ColumnInfo(name = "labelIndex")
+    val index:String="",
 )
