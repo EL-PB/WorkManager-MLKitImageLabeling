@@ -167,8 +167,16 @@ class ImageLabelingWorker(
                 contentDiskPath
             )
         )
-        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, ContentUris.withAppendedId(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentId))
+        val bitmap = MediaStore
+            .Images
+            .Media
+            .getBitmap(
+                context.contentResolver,
+                ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    contentId
+                )
+            )
         val inputImage = InputImage.fromBitmap(bitmap, 0)
 
         imageLabeler

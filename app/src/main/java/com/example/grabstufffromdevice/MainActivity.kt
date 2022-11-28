@@ -2,11 +2,13 @@ package com.example.grabstufffromdevice
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -102,6 +105,10 @@ class MainActivity : ComponentActivity() {
 fun ListOfImageAndLabels(imageList: List<ImageAndLabels>) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(imageList) { stuff ->
+            Image(
+                bitmap = BitmapFactory.decodeFile(stuff.imagePath).asImageBitmap(),
+                contentDescription = ""
+            )
             Text(text = stuff.imageId)
             Text(text = stuff.imagePath)
             stuff.labelList.forEach {
