@@ -20,24 +20,24 @@ interface ImageDao {
     fun getAllImages() : MutableList<ImageEntity>
 
     @Query("SELECT EXISTS(SELECT * FROM imagetable WHERE imageIdParent = :imageId)")
-    fun doesImageExist(imageId : String) : Boolean
+    fun doesImageExist(imageId : Long) : Boolean
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertLabel(imageLabel: ImageLabelEntity)
 
     @Query("SELECT * FROM ImageLabelTable WHERE imageIdChild = :imageId ORDER BY label ASC")
-    fun getImageSpecificLabels(imageId: String) : MutableList<ImageLabelEntity>
+    fun getImageSpecificLabels(imageId: Long) : MutableList<ImageLabelEntity>
 
     @Query("SELECT label, COUNT(label) as frequency FROM ImageLabelTable GROUP BY label ORDER BY frequency DESC LIMIT 7")
     fun getTopLabels(): MutableList<LabelFrequencyPair>
 
     @Query(
         "SELECT * FROM imagetable " +
-        "WHERE imageIdParent IN " +
-        "(SELECT imageIdChild FROM imagelabeltable WHERE label = :label) " +
-        "ORDER BY imageIdParent ASC"
+        "INNER JOIN imagelabeltable ON imagetable.imageIdParent = imagelabeltable.imageIdChild " +
+        "WHERE label = :label AND confidence >= :confidence " +
+        "ORDER BY confidence DESC"
     )
-    fun getImagesFilteredByLabels(label: String): MutableList<ImageEntity>
+    fun getImagesFilteredByLabels(label: String, confidence: Float): MutableList<ImageEntity>
 }
 
 data class LabelFrequencyPair(

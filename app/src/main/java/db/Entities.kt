@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
 data class ImageEntity(
     @PrimaryKey
     @ColumnInfo(name = "imageIdParent")
-    val imageId :String = "",
+    val imageId :Long = 0,
     val imagePath:String=""
 )
 
@@ -27,11 +27,11 @@ data class ImageEntity(
 )
 data class ImageLabelEntity(
     @ColumnInfo(name = "imageIdChild")
-    val imageId :String = "",
+    val imageId :Long = 0,
     @ColumnInfo(name = "label")
     val label:String="",
     @ColumnInfo(name = "confidence")
-    val confidence:String="",
+    val confidence:Float=0f,
     @ColumnInfo(name = "labelIndex")
-    val index:String="",
+    val index:Int=0,
 )

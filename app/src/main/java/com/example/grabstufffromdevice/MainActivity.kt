@@ -109,7 +109,7 @@ fun ListOfImageAndLabels(imageList: List<ImageAndLabels>) {
                 bitmap = BitmapFactory.decodeFile(stuff.imagePath).asImageBitmap(),
                 contentDescription = ""
             )
-            Text(text = stuff.imageId)
+            Text(text = stuff.imageId.toString())
             Text(text = stuff.imagePath)
             stuff.labelList.forEach {
                 Text(text = "Index: ${it.index}, Label: ${ it.label }, Confidence: ${it.confidence}")

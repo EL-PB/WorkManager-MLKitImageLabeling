@@ -65,7 +65,7 @@ class ViewModel constructor(application: Application): AndroidViewModel(applicat
 
     fun getSpecificImageLists(label: String) {
         var specificImageAndLabelsList: MutableList<ImageAndLabels> = arrayListOf()
-        val specificImagesFromDb = imageDB.imageDao().getImagesFilteredByLabels(label)
+        val specificImagesFromDb = imageDB.imageDao().getImagesFilteredByLabels(label, 0.7f)
 
         specificImagesFromDb.forEach {
             var imageLabelArray = imageDB.imageDao().getImageSpecificLabels(it.imageId)
@@ -89,7 +89,7 @@ class ViewModel constructor(application: Application): AndroidViewModel(applicat
 }
 
 data class ImageAndLabels(
-    val imageId:String = "",
+    val imageId:Long = 0,
     val imagePath:String="",
     val labelList: MutableList<ImageLabelEntity>
 )

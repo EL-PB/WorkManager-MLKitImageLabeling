@@ -163,7 +163,7 @@ class ImageLabelingWorker(
         println("new image being processed")
         imageDB.imageDao().insertImage(
             ImageEntity(
-                contentId.toString(),
+                contentId,
                 contentDiskPath
             )
         )
@@ -189,10 +189,10 @@ class ImageLabelingWorker(
 
                     imageDB.imageDao().insertLabel(
                         ImageLabelEntity(
-                            imageId = contentId.toString(),
+                            imageId = contentId,
                             label =text,
-                            confidence = confidence.toString(),
-                            index = index.toString()
+                            confidence = confidence,
+                            index = index
                         )
                     )
                     println("Text: $text\tConfidence: $confidence\tIndex: $index\n")
