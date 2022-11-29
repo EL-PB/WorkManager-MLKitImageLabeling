@@ -28,9 +28,6 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
 import androidx.work.*
-import com.example.grabstufffromdevice.ImageLabelingWorker
-import com.example.grabstufffromdevice.db.ImageDatabase
-import com.example.grabstufffromdevice.db.LabelFrequencyPair
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
@@ -105,11 +102,11 @@ class MainActivity : ComponentActivity() {
 fun ListOfImageAndLabels(imageList: List<ImageAndLabels>) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(imageList) { stuff ->
+            Text(text = stuff.imageId.toString())
             Image(
                 bitmap = BitmapFactory.decodeFile(stuff.imagePath).asImageBitmap(),
                 contentDescription = ""
             )
-            Text(text = stuff.imageId.toString())
             Text(text = stuff.imagePath)
             stuff.labelList.forEach {
                 Text(text = "Index: ${it.index}, Label: ${ it.label }, Confidence: ${it.confidence}")
