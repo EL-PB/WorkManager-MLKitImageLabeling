@@ -1,28 +1,11 @@
 package com.example.grabstufffromdevice
 
 import android.app.Application
-import android.content.ContentUris
-import android.content.Context
-import android.content.SharedPreferences
-import android.os.Build
-import android.provider.MediaStore
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.example.grabstufffromdevice.db.ImageDatabase
-import com.example.grabstufffromdevice.db.ImageLabelEntity
-import com.example.grabstufffromdevice.db.LabelFrequencyPair
-import com.google.gson.Gson
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.label.ImageLabeler
-import com.google.mlkit.vision.label.ImageLabeling
-import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
-import kotlinx.coroutines.*
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.tasks.await
 
 class ViewModel constructor(application: Application): AndroidViewModel(application) {
 
@@ -87,9 +70,3 @@ class ViewModel constructor(application: Application): AndroidViewModel(applicat
         imageDB.imageDao().nukeImageLabelTable()
     }
 }
-
-data class ImageAndLabels(
-    val imageId:Long = 0,
-    val imagePath:String="",
-    val labelList: MutableList<ImageLabelEntity>
-)

@@ -1,6 +1,7 @@
 package com.example.grabstufffromdevice.db
 
 import androidx.room.*
+import com.example.grabstufffromdevice.LabelFrequencyPair
 
 @Dao
 interface ImageDao {
@@ -39,8 +40,3 @@ interface ImageDao {
     )
     fun getImagesFilteredByLabels(label: String, confidence: Float): MutableList<ImageEntity>
 }
-
-data class LabelFrequencyPair(
-    val label:String = "",
-    val frequency: Int = 0
-)
