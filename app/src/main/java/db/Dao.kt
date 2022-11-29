@@ -28,7 +28,7 @@ interface ImageDao {
     @Query("SELECT * FROM ImageLabelTable WHERE imageIdChild = :imageId ORDER BY label ASC")
     fun getImageSpecificLabels(imageId: String) : MutableList<ImageLabelEntity>
 
-    @Query("SELECT label, COUNT(label) as frequency FROM ImageLabelTable GROUP BY label ORDER BY frequency DESC LIMIT 3")
+    @Query("SELECT label, COUNT(label) as frequency FROM ImageLabelTable GROUP BY label ORDER BY frequency DESC LIMIT 7")
     fun getTopLabels(): MutableList<LabelFrequencyPair>
 
     @Query(
