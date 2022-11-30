@@ -1,10 +1,12 @@
 package com.example.grabstufffromdevice.db
 
+import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
+@Keep
 @Entity(tableName = "ImageTable")
 data class ImageEntity(
     @PrimaryKey
@@ -13,6 +15,7 @@ data class ImageEntity(
     val imagePath:String=""
 )
 
+@Keep
 @Entity(
     tableName = "ImageLabelTable",
     primaryKeys = ["imageIdChild","label"],

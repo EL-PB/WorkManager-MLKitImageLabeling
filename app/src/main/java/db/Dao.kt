@@ -1,8 +1,10 @@
 package com.example.grabstufffromdevice.db
 
+import androidx.annotation.Keep
 import androidx.room.*
 import com.example.grabstufffromdevice.LabelFrequencyPair
 
+@Keep
 @Dao
 interface ImageDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)

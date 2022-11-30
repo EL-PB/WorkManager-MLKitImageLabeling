@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import android.provider.MediaStore
+import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.room.Room
@@ -24,11 +25,12 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import kotlin.random.Random
 
-object WorkerKeys {
+@Keep object WorkerKeys {
     const val ERROR_MSG = "errorMsg"
     const val LABELING_URI = "labelingUri"
 }
 
+@Keep
 class ImageLabelingWorker(
     private val context: Context,
     private val workerParams: WorkerParameters
@@ -199,5 +201,4 @@ class ImageLabelingWorker(
                 }
             }
     }
-
 }
