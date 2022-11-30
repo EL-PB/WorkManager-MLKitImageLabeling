@@ -132,12 +132,12 @@ class ImageLabelingWorker(
                             println("WHY DID YOU CRASH!!!???: ${e.message} ")
                         }
                     }
-                    job.join()
 
                     exception?.let {
                         val localException = Exception("Crash while getting albums attributes", exception)
                         println(localException)
                     }
+                    job.join()
                 }
 
                 cursor.close()
