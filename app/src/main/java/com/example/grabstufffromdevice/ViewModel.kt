@@ -19,8 +19,8 @@ class ViewModel constructor(application: Application): AndroidViewModel(applicat
     private val _labeledImages = MutableLiveData<List<ImageAndLabels>>()
     val labeledImages: LiveData<List<ImageAndLabels>> = _labeledImages
 
-    private val _labelFrequencyList = MutableLiveData<List<LabelFrequencyPair>>(arrayListOf())
-    val labelFrequencyList: LiveData<List<LabelFrequencyPair>> = _labelFrequencyList
+    private val _labelFrequencyList = MutableLiveData<List<LabelFrequencyPair>>()
+    val labelFrequencyList: MutableLiveData<List<LabelFrequencyPair>> = _labelFrequencyList
 
     fun getDataOfImagesAndLabels() {
         var imageAndLabelsList: MutableList<ImageAndLabels> = arrayListOf()
@@ -40,7 +40,13 @@ class ViewModel constructor(application: Application): AndroidViewModel(applicat
         }
 
         _labeledImages.value = imageAndLabelsList
-        _labelFrequencyList.value = imageDB.imageDao().getTopLabels()
+
+        val mostFrequentLabelsPair = imageDB.imageDao().getMostFrequentLabels()
+        val mflPair: MutableList<LabelFrequencyPair> = arrayListOf()
+        mostFrequentLabelsPair.forEach {
+            mflPair.add(imageDB.imageDao().getMFLOccurences(it.label))
+        }
+        _labelFrequencyList.value = mflPair
     }
 
     private val _specificLabeledImages = MutableLiveData<MutableList<ImageAndLabels>>(arrayListOf())

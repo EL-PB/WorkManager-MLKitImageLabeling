@@ -30,7 +30,14 @@ interface ImageDao {
     fun getImageSpecificLabels(imageId: Long) : MutableList<ImageLabelEntity>
 
     @Query("SELECT label, COUNT(label) as frequency FROM ImageLabelTable GROUP BY label ORDER BY frequency DESC LIMIT 7")
-    fun getTopLabels(): MutableList<LabelFrequencyPair>
+    fun getMostFrequentLabels(): MutableList<LabelFrequencyPair>
+
+    @Query(
+        "SELECT label, COUNT(label) as frequency " +
+        "FROM ImageLabelTable " +
+        "WHERE label = :labelName AND confidence >= 0.7"
+    )
+    fun getMFLOccurences(labelName: String): LabelFrequencyPair
 
     @Query(
         "SELECT * FROM imagetable " +
